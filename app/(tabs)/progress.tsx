@@ -49,7 +49,8 @@ export default function ProgressScreen() {
       ]);
       setSessions(s as Session[]);
       setLeaderboard(l as LeaderEntry[]);
-    } catch {
+    } catch (err) {
+      console.error('Failed to load progress data:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
