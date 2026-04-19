@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPlayer, getPlayer, updatePlayerStats, saveGameSession, getPlayerSessions } from '@/lib/supabase';
 import type { Player, GameSession } from '@/types/game';
 
-const STORAGE_KEY = 'mathquest_player_id';
-
 let globalPlayerId: string | null = null;
 let globalPlayer: Player | null = null;
 const listeners: Array<() => void> = [];
@@ -47,6 +45,9 @@ export function usePlayer() {
       globalPlayer = p;
       notifyListeners();
       return p;
+    } catch (err) {
+      console.error('Failed to register player:', err);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -54,41 +55,54 @@ export function usePlayer() {
 
   const refreshPlayer = useCallback(async () => {
     if (!globalPlayerId) return;
-    const data = await getPlayer(globalPlayerId);
-    if (data) {
-      const p: Player = {
-        id: data.id,
-        name: data.name,
-        avatarColor: data.avatar_color,
-        totalScore: data.total_score,
-        gamesPlayed: data.games_played,
-        currentStreak: data.current_streak,
-        lastPlayedDate: data.last_played_date,
-      };
-      globalPlayer = p;
-      notifyListeners();
+    try {
+      const data = await getPlayer(globalPlayerId);
+      if (data) {
+        const p: Player = {
+          id: data.id,
+          name: data.name,
+          avatarColor: data.avatar_color,
+          totalScore: data.total_score,
+          gamesPlayed: data.games_played,
+          currentStreak: data.current_streak,
+          lastPlayedDate: data.last_played_date,
+        };
+        globalPlayer = p;
+        notifyListeners();
+      }
+    } catch (err) {
+      console.error('Failed to refresh player:', err);
     }
   }, []);
 
   const submitSession = useCallback(async (session: Omit<GameSession, 'playerId'>) => {
     if (!globalPlayerId) return;
-    await saveGameSession({
-      player_id: globalPlayerId,
-      operation: session.operation,
-      difficulty: session.difficulty,
-      score: session.score,
-      correct_answers: session.correctAnswers,
-      total_questions: session.totalQuestions,
-      duration_seconds: session.durationSeconds,
-      stars: session.stars,
-    });
-    await updatePlayerStats(globalPlayerId, session.score);
-    await refreshPlayer();
+    try {
+      await saveGameSession({
+        player_id: globalPlayerId,
+        operation: session.operation,
+        difficulty: session.difficulty,
+        score: session.score,
+        correct_answers: session.correctAnswers,
+        total_questions: session.totalQuestions,
+        duration_seconds: session.durationSeconds,
+        stars: session.stars,
+      });
+      await updatePlayerStats(globalPlayerId, session.score);
+      await refreshPlayer();
+    } catch (err) {
+      console.error('Failed to submit game session:', err);
+    }
   }, [refreshPlayer]);
 
   const fetchSessions = useCallback(async () => {
     if (!globalPlayerId) return [];
-    return getPlayerSessions(globalPlayerId);
+    try {
+      return await getPlayerSessions(globalPlayerId);
+    } catch (err) {
+      console.error('Failed to fetch sessions:', err);
+      return [];
+    }
   }, []);
 
   return { player, loading, registerPlayer, refreshPlayer, submitSession, fetchSessions };
