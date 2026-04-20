@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import { playSound } from '@/lib/audio';
 
 interface NumberPadProps {
   onPress: (val: string) => void;
@@ -33,7 +34,10 @@ function KeyButton({ label, onPress, disabled, isSpecial, isOk }: KeyButtonProps
   };
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15 });
-    if (!disabled) onPress();
+    if (!disabled) {
+      playSound('button').catch(() => {});
+      onPress();
+    }
   };
 
   return (

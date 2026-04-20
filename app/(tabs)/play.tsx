@@ -15,6 +15,7 @@ import NumberPad from '@/components/game/NumberPad';
 import GameTimer from '@/components/game/GameTimer';
 import ResultModal from '@/components/game/ResultModal';
 import { usePlayer } from '@/hooks/usePlayer';
+import { playSound, loadSounds } from '@/lib/audio';
 import {
   GAME_MODES,
   DIFFICULTY_CONFIGS,
@@ -47,6 +48,10 @@ export default function PlayScreen() {
   const [finalStars, setFinalStars] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const feedbackRef = useRef(false);
+
+  useEffect(() => {
+    loadSounds().catch(() => {});
+  }, []);
 
   const diffConfig = DIFFICULTY_CONFIGS.find((d) => d.id === selectedDiff)!;
   const mode = getModeById(selectedOp);
@@ -102,6 +107,8 @@ export default function PlayScreen() {
         if (idx + 1 >= TOTAL_Q) {
           setScore(newScore);
           setCorrectCount(newCorrect);
+          if (isCorrect) playSound('starEarn').catch(() => {});
+          playSound('gameEnd').catch(() => {});
           handleGameEnd(currentQ, idx + 1, newCorrect, newScore);
         } else {
           setCurrentIndex(idx + 1);
@@ -147,6 +154,7 @@ export default function PlayScreen() {
     setStartTime(Date.now());
     setShowResult(false);
     setScreen('game');
+    playSound('gameStart').catch(() => {});
   };
 
   const handleKeyPress = (val: string) => {

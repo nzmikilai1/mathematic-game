@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BookOpen, Star, Zap } from 'lucide-react-native';
+import { BookOpen, Star, Zap, Volume2, VolumeX } from 'lucide-react-native';
 import { usePlayer } from '@/hooks/usePlayer';
+import { areSoundsEnabled, setSoundsEnabled, loadSounds, initializeAudio } from '@/lib/audio';
 import { AVATAR_COLORS } from '@/lib/gameLogic';
 
 export default function HomeScreen() {
@@ -24,11 +25,23 @@ export default function HomeScreen() {
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [soundEnabled, setSoundEnabledState] = useState(areSoundsEnabled());
 
   const headerScale = useSharedValue(1);
   const headerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: headerScale.value }],
   }));
+
+  useEffect(() => {
+    initializeAudio().catch(() => {});
+    loadSounds().catch(() => {});
+  }, []);
+
+  const toggleSound = () => {
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    setSoundEnabledState(newState);
+  };
 
   const handleCreate = async () => {
     if (name.trim().length < 2) {
@@ -55,6 +68,13 @@ export default function HomeScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.hero}
         >
+          <TouchableOpacity style={styles.soundBtn} onPress={toggleSound}>
+            {soundEnabled ? (
+              <Volume2 size={20} color="#FFF" />
+            ) : (
+              <VolumeX size={20} color="#FFF" />
+            )}
+          </TouchableOpacity>
           <Animated.View style={[styles.heroInner, headerStyle]}>
             <Text style={styles.heroEmoji}>🧮</Text>
             <Text style={styles.heroTitle}>MathQuest</Text>
@@ -237,6 +257,17 @@ const styles = StyleSheet.create({
   setupTitle: { fontSize: 16, fontWeight: '800', color: '#2C3E50' },
   setupSub: { fontSize: 12, color: '#95A5A6', fontWeight: '500', marginTop: 2 },
   setupArrow: { fontSize: 20, color: '#FF9A3C', fontWeight: '700' },
+  soundBtn: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statsRow: {
     flexDirection: 'row',
     marginHorizontal: 20,

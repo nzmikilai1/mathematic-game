@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
 } from 'react-native-reanimated';
+import { playSound } from '@/lib/audio';
 
 interface QuestionDisplayProps {
   question: string;
@@ -43,10 +44,12 @@ export default function QuestionDisplay({
       bgOpacity.value = withTiming(1, { duration: 150 }, () => {
         bgOpacity.value = withTiming(0, { duration: 400 });
       });
+      playSound('incorrect').catch(() => {});
     } else if (feedback === 'correct') {
       bgOpacity.value = withTiming(1, { duration: 150 }, () => {
         bgOpacity.value = withTiming(0, { duration: 400 });
       });
+      playSound('correct').catch(() => {});
     }
   }, [feedback]);
 
