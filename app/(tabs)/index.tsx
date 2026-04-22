@@ -39,7 +39,6 @@ export default function HomeScreen() {
 
   const toggleSound = () => {
     const newState = !soundEnabled;
-    setSoundEnabled(newState);
     setSoundEnabledState(newState);
   };
 
@@ -76,8 +75,8 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
           <Animated.View style={[styles.heroInner, headerStyle]}>
-            <Text style={styles.heroEmoji}>🧮</Text>
-            <Text style={styles.heroTitle}>MathQuest</Text>
+            <Text style={styles.heroEmoji}>🐼</Text>
+            <Text style={styles.heroTitle}>Panda Count</Text>
             <Text style={styles.heroSubtitle}>Learn Math the Fun Way!</Text>
           </Animated.View>
         </LinearGradient>
